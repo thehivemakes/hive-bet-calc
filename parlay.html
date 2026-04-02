@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parlay Calculator — BetCalc</title>
+<meta name="description" content="Parlay calculator. Enter odds for each leg to find total payout and profit. American, decimal, fractional formats. Free tool.">
+<meta property="og:title" content="Parlay Calculator — BetCalc">
+<meta property="og:description" content="Parlay calculator. Enter odds for each leg to find total payout and profit. American, decimal, fractional formats. Free tool.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://thehivemakes.github.io/hive-bet-calc/parlay.html">
+<link rel="stylesheet" href="style.css">
+<script src="js/calc-core.js"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Parlay Calculator",
+  "url": "https://thehivemakes.github.io/hive-bet-calc/parlay.html",
+  "description": "Parlay calculator. Enter odds for each leg to find total payout and profit. American, decimal, fractional formats. Free tool.",
+  "applicationCategory": "UtilityApplication",
+  "operatingSystem": "Any"
+}
+</script>
+</head>
+<body>
+<header><div class="header-inner"><div class="logo">Bet<span>Calc</span></div><div class="tagline">Free betting calculators</div></div></header>
+<nav><div class="nav-inner"><a href="index.html">BetCalc</a><span class="sep">/</span><span>Parlay Calculator</span></div></nav>
+<main>
+  <div class="ad-leaderboard" id="ad-top">Ad</div>
+  <div class="card">
+    <h1>Parlay Calculator</h1>
+    <p class="subtitle">Enter your stake and odds for each leg to find total payout and profit.</p>
+    <div class="form-grid">
+      <div class="field">
+        <label for="stake">Stake ($)</label>
+        <input type="number" id="stake" step="1" placeholder="100" value="100">
+      </div>
+      <div class="field">
+        <label for="odds1">Leg 1 (American odds)</label>
+        <input type="number" id="odds1" step="1" placeholder="-110">
+      </div>
+      <div class="field">
+        <label for="odds2">Leg 2 (American odds)</label>
+        <input type="number" id="odds2" step="1" placeholder="+150">
+      </div>
+      <div class="field">
+        <label for="odds3">Leg 3 (American odds)</label>
+        <input type="number" id="odds3" step="1" placeholder="-120">
+      </div>
+      <div class="field">
+        <label for="odds4">Leg 4 (optional)</label>
+        <input type="number" id="odds4" step="1" placeholder="">
+      </div>
+      <div class="field">
+        <label for="odds5">Leg 5 (optional)</label>
+        <input type="number" id="odds5" step="1" placeholder="">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="calculate()">Calculate</button>
+    <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+    <div class="result" id="result">
+      <div class="result-row">
+        <span class="result-label">Combined decimal odds</span>
+        <span class="result-value" id="par-decimal">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Combined American odds</span>
+        <span class="result-value" id="par-american">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Total payout</span>
+        <span class="result-value" id="par-payout">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Profit if all win</span>
+        <span class="result-value" id="par-profit">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Implied probability</span>
+        <span class="result-value" id="par-prob">—</span>
+      </div>
+      <div class="result-note">Parlay odds multiply. A 3-leg parlay at -110, +150, -120 has combined decimal odds of 1.909 × 2.500 × 1.833 = 8.75. Implied probability drops as legs increase.</div>
+    </div>
+  </div>
+
+  <div class="ad-rectangle" id="ad-mid">Ad</div>
+  <div class="seo-section">
+    <h2>How Parlay Bets Work</h2>
+    <p>A parlay combines multiple bets into one. All legs must win for the parlay to pay out. The odds multiply together, creating higher potential payouts but lower probability of winning.</p>
+    <p>To calculate: convert each leg to decimal odds, multiply them all together, then multiply by your stake. The implied probability of all legs winning equals the product of each leg's individual probability.</p>
+  </div>
+</main>
+<footer>Free betting calculators for educational purposes. Gambling involves risk. Never bet more than you can afford to lose.<br>Built by <a href="https://thehivemakes.github.io/" style="color:var(--accent)">The Hive</a></footer>
+<script>
+
+function americanToDecimal(a) {
+  if (a >= 100) return 1 + a/100;
+  if (a <= -100) return 1 + 100/Math.abs(a);
+  return NaN;
+}
+function decimalToAmerican(d) {
+  if (d >= 2) return '+' + Math.round((d-1)*100);
+  return '-' + Math.round(100/(d-1));
+}
+
+function calculate() {
+  const stake = CalcCore.get('stake');
+  if (isNaN(stake)||stake<=0) return;
+
+  const oddsIds = ['odds1','odds2','odds3','odds4','odds5'];
+  let combinedDecimal = 1;
+  let legs = 0;
+  for (const id of oddsIds) {
+    const a = CalcCore.get(id);
+    if (isNaN(a)) continue;
+    const d = americanToDecimal(a);
+    if (isNaN(d)||d<=1) continue;
+    combinedDecimal *= d;
+    legs++;
+  }
+  if (legs < 2) return;
+
+  const payout = stake * combinedDecimal;
+  const profit = payout - stake;
+  const prob = 1 / combinedDecimal;
+
+  CalcCore.set('par-decimal', CalcCore.fmt(combinedDecimal, 3));
+  CalcCore.set('par-american', decimalToAmerican(combinedDecimal));
+  CalcCore.set('par-payout', '$' + CalcCore.fmt(payout, 2));
+  CalcCore.set('par-profit', '$' + CalcCore.fmt(profit, 2));
+  CalcCore.set('par-prob', CalcCore.fmt(prob*100, 1) + '%');
+  CalcCore.showResult();
+  CalcCore.saveParams(['stake','odds1','odds2','odds3','odds4','odds5']);
+}
+
+function clearAll() {
+  ["stake", "odds1", "odds2", "odds3", "odds4", "odds5"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = el.defaultValue || '';
+  });
+  document.getElementById('result').classList.remove('visible');
+  history.replaceState(null, '', window.location.pathname);
+}
+
+document.addEventListener('DOMContentLoaded', () => { if (window.location.search) calculate(); });
+</script>
+</body>
+</html>

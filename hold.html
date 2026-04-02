@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hold Percentage Calculator — BetCalc</title>
+<meta name="description" content="Hold percentage calculator. Enter odds for all outcomes to find the bookmaker vig/juice. Free betting analysis tool.">
+<meta property="og:title" content="Hold Percentage Calculator — BetCalc">
+<meta property="og:description" content="Hold percentage calculator. Enter odds for all outcomes to find the bookmaker vig/juice. Free betting analysis tool.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://thehivemakes.github.io/hive-bet-calc/hold.html">
+<link rel="stylesheet" href="style.css">
+<script src="js/calc-core.js"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Hold Percentage Calculator",
+  "url": "https://thehivemakes.github.io/hive-bet-calc/hold.html",
+  "description": "Hold percentage calculator. Enter odds for all outcomes to find the bookmaker vig/juice. Free betting analysis tool.",
+  "applicationCategory": "UtilityApplication",
+  "operatingSystem": "Any"
+}
+</script>
+</head>
+<body>
+<header><div class="header-inner"><div class="logo">Bet<span>Calc</span></div><div class="tagline">Free betting calculators</div></div></header>
+<nav><div class="nav-inner"><a href="index.html">BetCalc</a><span class="sep">/</span><span>Hold Percentage Calculator</span></div></nav>
+<main>
+  <div class="ad-leaderboard" id="ad-top">Ad</div>
+  <div class="card">
+    <h1>Hold Percentage Calculator</h1>
+    <p class="subtitle">Enter odds for all outcomes to find the bookmaker's built-in margin.</p>
+    <div class="form-grid">
+      <div class="field">
+        <label for="hold_odds1">Outcome 1 (American odds)</label>
+        <input type="number" id="hold_odds1" step="1" placeholder="-110">
+      </div>
+      <div class="field">
+        <label for="hold_odds2">Outcome 2 (American odds)</label>
+        <input type="number" id="hold_odds2" step="1" placeholder="-110">
+      </div>
+      <div class="field">
+        <label for="hold_odds3">Outcome 3 / Draw (optional)</label>
+        <input type="number" id="hold_odds3" step="1" placeholder="">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="calculate()">Calculate</button>
+    <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+    <div class="result" id="result">
+      <div class="result-row">
+        <span class="result-label">Hold percentage (vig)</span>
+        <span class="result-value" id="hold-pct">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Fair odds outcome 1</span>
+        <span class="result-value" id="hold-fair1">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Fair odds outcome 2</span>
+        <span class="result-value" id="hold-fair2">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Implied prob. outcome 1</span>
+        <span class="result-value" id="hold-imp1">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Implied prob. outcome 2</span>
+        <span class="result-value" id="hold-imp2">—</span>
+      </div>
+      <div class="result-note">Hold = (sum of implied probabilities - 100%). Standard US sportsbook hold on sides: 4.5–5%. Sharp books: 2–3%. A -110/-110 line has 4.76% hold.</div>
+    </div>
+  </div>
+
+  <div class="ad-rectangle" id="ad-mid">Ad</div>
+  <div class="seo-section">
+    <h2>Understanding Bookmaker Hold (Vig)</h2>
+    <p>The hold (also called vig, juice, or overround) is the bookmaker's built-in profit margin. It is the amount by which implied probabilities exceed 100%.</p>
+    <p>A standard -110/-110 line implies each side has a 52.4% chance of winning, totaling 104.8%. The 4.8% excess is the hold. Lower hold means better value for bettors.</p>
+  </div>
+</main>
+<footer>Free betting calculators for educational purposes. Gambling involves risk. Never bet more than you can afford to lose.<br>Built by <a href="https://thehivemakes.github.io/" style="color:var(--accent)">The Hive</a></footer>
+<script>
+
+function calculate() {
+  function aToD(a) { return a>=100 ? 1+a/100 : a<=-100 ? 1+100/Math.abs(a) : NaN; }
+  function dToA(d) { return d>=2 ? '+'+Math.round((d-1)*100) : '-'+Math.round(100/(d-1)); }
+
+  const a1 = CalcCore.get('hold_odds1');
+  const a2 = CalcCore.get('hold_odds2');
+  const a3 = CalcCore.get('hold_odds3');
+  if (isNaN(a1)||isNaN(a2)) return;
+
+  const d1 = aToD(a1), d2 = aToD(a2);
+  if (isNaN(d1)||isNaN(d2)) return;
+
+  let invSum = 1/d1 + 1/d2;
+  if (!isNaN(a3)) { const d3 = aToD(a3); if (!isNaN(d3)) invSum += 1/d3; }
+
+  const hold = (invSum - 1) * 100;
+  const fair1 = 1 / ((1/d1) / invSum);
+  const fair2 = 1 / ((1/d2) / invSum);
+
+  CalcCore.set('hold-pct', CalcCore.fmt(hold, 2) + '%');
+  CalcCore.set('hold-fair1', dToA(fair1) + ' (decimal: ' + CalcCore.fmt(fair1, 3) + ')');
+  CalcCore.set('hold-fair2', dToA(fair2) + ' (decimal: ' + CalcCore.fmt(fair2, 3) + ')');
+  CalcCore.set('hold-imp1', CalcCore.fmt(100/d1, 1) + '%');
+  CalcCore.set('hold-imp2', CalcCore.fmt(100/d2, 1) + '%');
+  CalcCore.showResult();
+  CalcCore.saveParams(['hold_odds1','hold_odds2','hold_odds3']);
+}
+
+function clearAll() {
+  ["hold_odds1", "hold_odds2", "hold_odds3"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = el.defaultValue || '';
+  });
+  document.getElementById('result').classList.remove('visible');
+  history.replaceState(null, '', window.location.pathname);
+}
+
+document.addEventListener('DOMContentLoaded', () => { if (window.location.search) calculate(); });
+</script>
+</body>
+</html>

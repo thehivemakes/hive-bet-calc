@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arbitrage Calculator — BetCalc</title>
+<meta name="description" content="Arbitrage betting calculator. Enter odds from multiple bookmakers to find guaranteed profit opportunities. Free tool.">
+<meta property="og:title" content="Arbitrage Calculator — BetCalc">
+<meta property="og:description" content="Arbitrage betting calculator. Enter odds from multiple bookmakers to find guaranteed profit opportunities. Free tool.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://thehivemakes.github.io/hive-bet-calc/arbitrage.html">
+<link rel="stylesheet" href="style.css">
+<script src="js/calc-core.js"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Arbitrage Calculator",
+  "url": "https://thehivemakes.github.io/hive-bet-calc/arbitrage.html",
+  "description": "Arbitrage betting calculator. Enter odds from multiple bookmakers to find guaranteed profit opportunities. Free tool.",
+  "applicationCategory": "UtilityApplication",
+  "operatingSystem": "Any"
+}
+</script>
+</head>
+<body>
+<header><div class="header-inner"><div class="logo">Bet<span>Calc</span></div><div class="tagline">Free betting calculators</div></div></header>
+<nav><div class="nav-inner"><a href="index.html">BetCalc</a><span class="sep">/</span><span>Arbitrage Calculator</span></div></nav>
+<main>
+  <div class="ad-leaderboard" id="ad-top">Ad</div>
+  <div class="card">
+    <h1>Arbitrage Calculator</h1>
+    <p class="subtitle">Enter odds from different bookmakers to check for arbitrage and calculate stakes.</p>
+    <div class="form-grid">
+      <div class="field">
+        <label for="arb_total">Total investment ($)</label>
+        <input type="number" id="arb_total" step="1" placeholder="1000">
+      </div>
+      <div class="field">
+        <label for="arb_odds1">Outcome 1 decimal odds</label>
+        <input type="number" id="arb_odds1" step="0.01" placeholder="2.10">
+      </div>
+      <div class="field">
+        <label for="arb_odds2">Outcome 2 decimal odds</label>
+        <input type="number" id="arb_odds2" step="0.01" placeholder="2.05">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="calculate()">Calculate</button>
+    <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+    <div class="result" id="result">
+      <div class="result-row">
+        <span class="result-label">Arbitrage margin</span>
+        <span class="result-value" id="arb-margin">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Arbitrage exists?</span>
+        <span class="result-value" id="arb-exists">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Stake on outcome 1</span>
+        <span class="result-value" id="arb-stake1">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Stake on outcome 2</span>
+        <span class="result-value" id="arb-stake2">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Guaranteed profit</span>
+        <span class="result-value" id="arb-profit">—</span>
+      </div>
+      <div class="result-note">Arbitrage exists when 1/odds1 + 1/odds2 < 1. The margin below 100% is your guaranteed profit percentage.</div>
+    </div>
+  </div>
+
+  <div class="ad-rectangle" id="ad-mid">Ad</div>
+  <div class="seo-section">
+    <h2>What Is Arbitrage Betting?</h2>
+    <p>Arbitrage betting exploits differences in odds between bookmakers to guarantee a profit regardless of the outcome. It works when the implied probabilities across all outcomes sum to less than 100%.</p>
+    <p>To check for arbitrage: convert all odds to decimal, sum 1/odds for each outcome. If the total is less than 1, arbitrage exists and the difference is your profit margin.</p>
+  </div>
+</main>
+<footer>Free betting calculators for educational purposes. Gambling involves risk. Never bet more than you can afford to lose.<br>Built by <a href="https://thehivemakes.github.io/" style="color:var(--accent)">The Hive</a></footer>
+<script>
+
+function calculate() {
+  const total = CalcCore.get('arb_total');
+  const o1 = CalcCore.get('arb_odds1');
+  const o2 = CalcCore.get('arb_odds2');
+  if (isNaN(total)||isNaN(o1)||isNaN(o2)||total<=0||o1<=1||o2<=1) return;
+
+  const invSum = 1/o1 + 1/o2;
+  const margin = (1 - invSum) * 100;
+  const exists = invSum < 1;
+  const stake1 = total * (1/o1) / invSum;
+  const stake2 = total * (1/o2) / invSum;
+  const payout1 = stake1 * o1;
+  const payout2 = stake2 * o2;
+  const profit = Math.min(payout1, payout2) - total;
+
+  CalcCore.set('arb-margin', CalcCore.fmt(margin, 2) + '%');
+  CalcCore.set('arb-exists', exists ? 'YES \u2014 guaranteed profit' : 'NO \u2014 no arbitrage');
+  CalcCore.set('arb-stake1', '$' + CalcCore.fmt(stake1, 2));
+  CalcCore.set('arb-stake2', '$' + CalcCore.fmt(stake2, 2));
+  CalcCore.set('arb-profit', exists ? '$'+CalcCore.fmt(profit, 2)+' guaranteed' : 'No profit (vig exceeds margin)');
+  CalcCore.showResult();
+  CalcCore.saveParams(['arb_total','arb_odds1','arb_odds2']);
+}
+
+function clearAll() {
+  ["arb_total", "arb_odds1", "arb_odds2"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = el.defaultValue || '';
+  });
+  document.getElementById('result').classList.remove('visible');
+  history.replaceState(null, '', window.location.pathname);
+}
+
+document.addEventListener('DOMContentLoaded', () => { if (window.location.search) calculate(); });
+</script>
+</body>
+</html>

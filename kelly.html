@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kelly Criterion Calculator — BetCalc</title>
+<meta name="description" content="Kelly criterion calculator. Find optimal bet size based on your edge and odds. Bankroll management tool. Free.">
+<meta property="og:title" content="Kelly Criterion Calculator — BetCalc">
+<meta property="og:description" content="Kelly criterion calculator. Find optimal bet size based on your edge and odds. Bankroll management tool. Free.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://thehivemakes.github.io/hive-bet-calc/kelly.html">
+<link rel="stylesheet" href="style.css">
+<script src="js/calc-core.js"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Kelly Criterion Calculator",
+  "url": "https://thehivemakes.github.io/hive-bet-calc/kelly.html",
+  "description": "Kelly criterion calculator. Find optimal bet size based on your edge and odds. Bankroll management tool. Free.",
+  "applicationCategory": "UtilityApplication",
+  "operatingSystem": "Any"
+}
+</script>
+</head>
+<body>
+<header><div class="header-inner"><div class="logo">Bet<span>Calc</span></div><div class="tagline">Free betting calculators</div></div></header>
+<nav><div class="nav-inner"><a href="index.html">BetCalc</a><span class="sep">/</span><span>Kelly Criterion Calculator</span></div></nav>
+<main>
+  <div class="ad-leaderboard" id="ad-top">Ad</div>
+  <div class="card">
+    <h1>Kelly Criterion Calculator</h1>
+    <p class="subtitle">Enter your edge and odds to find the mathematically optimal bet size.</p>
+    <div class="form-grid">
+      <div class="field">
+        <label for="bankroll">Bankroll ($)</label>
+        <input type="number" id="bankroll" step="1" placeholder="1000">
+      </div>
+      <div class="field">
+        <label for="kelly_odds">Decimal odds</label>
+        <input type="number" id="kelly_odds" step="0.01" placeholder="2.10">
+      </div>
+      <div class="field">
+        <label for="win_prob">Your estimated win probability (%)</label>
+        <input type="number" id="win_prob" step="0.1" placeholder="55">
+      </div>
+      <div class="field">
+        <label for="kelly_frac">Kelly fraction (1 = full, 0.5 = half)</label>
+        <input type="number" id="kelly_frac" step="0.1" placeholder="0.5" value="0.5">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="calculate()">Calculate</button>
+    <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+    <div class="result" id="result">
+      <div class="result-row">
+        <span class="result-label">Full Kelly bet (%)</span>
+        <span class="result-value" id="kelly-pct">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Fractional Kelly bet (%)</span>
+        <span class="result-value" id="kelly-frac-pct">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Bet amount</span>
+        <span class="result-value" id="kelly-amount">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Your edge</span>
+        <span class="result-value" id="kelly-edge">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Expected value per bet</span>
+        <span class="result-value" id="kelly-ev">—</span>
+      </div>
+      <div class="result-note">Kelly formula: f* = (bp - q) / b, where b = decimal odds - 1, p = win probability, q = 1 - p. Half-Kelly is commonly used to reduce variance.</div>
+    </div>
+  </div>
+
+  <div class="ad-rectangle" id="ad-mid">Ad</div>
+  <div class="seo-section">
+    <h2>The Kelly Criterion Explained</h2>
+    <p>The Kelly criterion is a formula for sizing bets to maximize long-term bankroll growth. It balances the tradeoff between betting too little (leaving edge on the table) and too much (risk of ruin).</p>
+    <p>Full Kelly can produce large swings. Most professional bettors use fractional Kelly (typically 25-50% of the full Kelly amount) to reduce variance while still capturing most of the expected growth.</p>
+    <p>If the Kelly result is negative, you have no edge — the bet has negative expected value and should not be placed.</p>
+  </div>
+</main>
+<footer>Free betting calculators for educational purposes. Gambling involves risk. Never bet more than you can afford to lose.<br>Built by <a href="https://thehivemakes.github.io/" style="color:var(--accent)">The Hive</a></footer>
+<script>
+
+function calculate() {
+  const bankroll = CalcCore.get('bankroll');
+  const odds = CalcCore.get('kelly_odds');
+  const winPct = CalcCore.get('win_prob') / 100;
+  const frac = CalcCore.get('kelly_frac') || 1;
+  if (isNaN(bankroll)||isNaN(odds)||isNaN(winPct)||bankroll<=0||odds<=1||winPct<=0||winPct>=1) return;
+
+  const b = odds - 1;
+  const p = winPct;
+  const q = 1 - p;
+  const kelly = (b * p - q) / b;
+  const fracKelly = kelly * frac;
+  const betAmount = Math.max(0, bankroll * fracKelly);
+  const edge = (odds * p) - 1;
+  const ev = betAmount * edge;
+
+  CalcCore.set('kelly-pct', CalcCore.fmt(kelly*100, 1) + '%' + (kelly<0?' (NO EDGE)':''));
+  CalcCore.set('kelly-frac-pct', CalcCore.fmt(fracKelly*100, 1) + '%');
+  CalcCore.set('kelly-amount', kelly>0 ? '$'+CalcCore.fmt(betAmount, 2) : 'Do not bet (negative edge)');
+  CalcCore.set('kelly-edge', CalcCore.fmt(edge*100, 1) + '%');
+  CalcCore.set('kelly-ev', kelly>0 ? '$'+CalcCore.fmt(ev, 2)+' per bet' : 'Negative EV');
+  CalcCore.showResult();
+  CalcCore.saveParams(['bankroll','kelly_odds','win_prob','kelly_frac']);
+}
+
+function clearAll() {
+  ["bankroll", "kelly_odds", "win_prob", "kelly_frac"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = el.defaultValue || '';
+  });
+  document.getElementById('result').classList.remove('visible');
+  history.replaceState(null, '', window.location.pathname);
+}
+
+document.addEventListener('DOMContentLoaded', () => { if (window.location.search) calculate(); });
+</script>
+</body>
+</html>

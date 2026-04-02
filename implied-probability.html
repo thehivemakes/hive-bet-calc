@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Implied Probability Calculator — BetCalc</title>
+<meta name="description" content="Implied probability calculator. Convert American, decimal, or fractional odds to probability percentage. Free betting tool.">
+<meta property="og:title" content="Implied Probability Calculator — BetCalc">
+<meta property="og:description" content="Implied probability calculator. Convert American, decimal, or fractional odds to probability percentage. Free betting tool.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://thehivemakes.github.io/hive-bet-calc/implied-probability.html">
+<link rel="stylesheet" href="style.css">
+<script src="js/calc-core.js"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Implied Probability Calculator",
+  "url": "https://thehivemakes.github.io/hive-bet-calc/implied-probability.html",
+  "description": "Implied probability calculator. Convert American, decimal, or fractional odds to probability percentage. Free betting tool.",
+  "applicationCategory": "UtilityApplication",
+  "operatingSystem": "Any"
+}
+</script>
+</head>
+<body>
+<header><div class="header-inner"><div class="logo">Bet<span>Calc</span></div><div class="tagline">Free betting calculators</div></div></header>
+<nav><div class="nav-inner"><a href="index.html">BetCalc</a><span class="sep">/</span><span>Implied Probability Calculator</span></div></nav>
+<main>
+  <div class="ad-leaderboard" id="ad-top">Ad</div>
+  <div class="card">
+    <h1>Implied Probability Calculator</h1>
+    <p class="subtitle">Enter odds in any format to find the implied probability of that outcome.</p>
+    <div class="form-grid">
+      <div class="field">
+        <label for="imp_american">American odds (e.g. -110, +250)</label>
+        <input type="number" id="imp_american" step="1" placeholder="-110">
+      </div>
+      <div class="field">
+        <label for="imp_decimal">Decimal odds (e.g. 1.91)</label>
+        <input type="number" id="imp_decimal" step="0.01" placeholder="">
+      </div>
+      <div class="field">
+        <label for="imp_frac_num">Fractional numerator</label>
+        <input type="number" id="imp_frac_num" step="1" placeholder="">
+      </div>
+      <div class="field">
+        <label for="imp_frac_den">Fractional denominator</label>
+        <input type="number" id="imp_frac_den" step="1" placeholder="">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="calculate()">Calculate</button>
+    <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+    <div class="result" id="result">
+      <div class="result-row">
+        <span class="result-label">Implied probability</span>
+        <span class="result-value" id="imp-prob">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">American odds</span>
+        <span class="result-value" id="imp-amer">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Decimal odds</span>
+        <span class="result-value" id="imp-dec">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Fractional odds</span>
+        <span class="result-value" id="imp-frac">—</span>
+      </div>
+      <div class="result-note">Implied probability = 1 / decimal odds. Bookmaker margins mean the sum of all outcomes' implied probabilities exceeds 100%. The excess is the "vig" or "juice".</div>
+    </div>
+  </div>
+
+  <div class="ad-rectangle" id="ad-mid">Ad</div>
+  <div class="seo-section">
+    <h2>Understanding Implied Probability</h2>
+    <p>Implied probability is the probability of an outcome as reflected by the betting odds. It tells you what the market believes about the likelihood of each outcome.</p>
+    <p>To find value bets, compare implied probability to your own estimated probability. If you believe a team has a 60% chance of winning but the odds imply only 50%, that may be a value bet.</p>
+  </div>
+</main>
+<footer>Free betting calculators for educational purposes. Gambling involves risk. Never bet more than you can afford to lose.<br>Built by <a href="https://thehivemakes.github.io/" style="color:var(--accent)">The Hive</a></footer>
+<script>
+
+function calculate() {
+  const a = CalcCore.get('imp_american');
+  const d = CalcCore.get('imp_decimal');
+  const fn = CalcCore.get('imp_frac_num');
+  const fd = CalcCore.get('imp_frac_den');
+
+  let decimal;
+  if (!isNaN(a)) {
+    if (a>=100) decimal = 1 + a/100;
+    else if (a<=-100) decimal = 1 + 100/Math.abs(a);
+    else return;
+  } else if (!isNaN(d) && d > 1) {
+    decimal = d;
+  } else if (!isNaN(fn) && !isNaN(fd) && fd > 0) {
+    decimal = 1 + fn/fd;
+  } else return;
+
+  const prob = 1/decimal;
+  const american = decimal>=2 ? '+'+Math.round((decimal-1)*100) : '-'+Math.round(100/(decimal-1));
+  const fracN = Math.round((decimal-1)*100);
+  const fracD = 100;
+  const gcd = (a,b) => b===0?a:gcd(b,a%b);
+  const g = gcd(fracN, fracD);
+
+  CalcCore.set('imp-prob', CalcCore.fmt(prob*100, 1) + '%');
+  CalcCore.set('imp-amer', american);
+  CalcCore.set('imp-dec', CalcCore.fmt(decimal, 3));
+  CalcCore.set('imp-frac', (fracN/g) + '/' + (fracD/g));
+  CalcCore.showResult();
+  CalcCore.saveParams(['imp_american','imp_decimal','imp_frac_num','imp_frac_den']);
+}
+
+function clearAll() {
+  ["imp_american", "imp_decimal", "imp_frac_num", "imp_frac_den"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = el.defaultValue || '';
+  });
+  document.getElementById('result').classList.remove('visible');
+  history.replaceState(null, '', window.location.pathname);
+}
+
+document.addEventListener('DOMContentLoaded', () => { if (window.location.search) calculate(); });
+</script>
+</body>
+</html>
